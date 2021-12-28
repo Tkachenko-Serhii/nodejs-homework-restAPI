@@ -1,81 +1,94 @@
-const express = require('express')
-const { NotFound, BadRequest } = require('http-errors')
-const Joi = require('joi')
-const router = express.Router()
-
-const contactsOperations = require('../../models/contacts')
-
-const joiSchema = Joi.object({
-  name: Joi.string().min(3).max(30).required(),
-  phone: Joi.string().min(3).max(10).required(),
-  email: Joi.string()
-    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua', 'ru'] } })
-    .required(),
-})
+const express = require('express');
+const { NotFound } = require('http-errors');
+const { Contact, joiSchema } = require('../../models');
+const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const contacts = await contactsOperations.listContacts()
-    res.json(contacts)
+    const contacts = await Contact.find();
+    res.json(contacts);
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 router.get('/:id', async (req, res, next) => {
-  const { id } = req.params
+  const { id } = req.params;
   try {
-    const contact = await contactsOperations.getContactById(id)
+    const contact = await Contact.findById(id);
     if (!contact) {
-      throw new NotFound()
+      throw new NotFound();
     }
-    res.json(contact)
+    res.json(contact);
   } catch (error) {
-    next(error)
+    if (error.message.includes('Cast to ObjectId failed')) {
+      error.status = 404;
+    }
+    next(error);
   }
-})
+});
 
 router.post('/', async (req, res, next) => {
   try {
-    const { error } = joiSchema.validate(req.body)
+    const { error } = joiSchema.validate(req.body);
     if (error) {
-      throw res.status(400).json({ message: 'missing required name field' })
+      throw res.status(400).json({ message: 'missing required name field' });
     }
-    const newContact = await contactsOperations.addContact(req.body)
-    res.status(201).json(newContact)
+    const newContact = await Contact.create(req.body);
+    res.status(201).json(newContact);
   } catch (error) {
-    next(error)
+    if (error.message.includes('validation failed')) {
+      error.status = 400;
+    }
+    next(error);
   }
-})
+});
 
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params
-    const deleteContact = await contactsOperations.removeContact(id)
+    const { id } = req.params;
+    const deleteContact = await Contact.findByIdAndRemove(id);
     if (!deleteContact) {
-      throw new NotFound()
+      throw new NotFound();
     }
-    res.json({ message: 'Contact deleted' })
+    res.json({ message: 'Contact deleted' });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { error } = joiSchema.validate(req.body)
+    const { error } = joiSchema.validate(req.body);
     if (error) {
-      throw res.status(400).json({ message: 'missing fields' })
+      throw res.status(400).json({ message: 'missing fields' });
     }
-    const { id } = req.params
-    const updateContact = await contactsOperations.updateContactsById({ id, ...req.body })
+    const { id } = req.params;
+    const updateContact = await Contact.findByIdAndUpdate(id, req.body, { new: true });
     if (!updateContact) {
-      throw new NotFound()
+      throw new NotFound();
     }
-    res.json(updateContact)
+    res.json(updateContact);
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-module.exports = router
+router.patch('/:id/favorite', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { favorite } = req.body;
+    const updateContact = await Contact.findByIdAndUpdate(id, { favorite }, { new: true });
+    if (!updateContact) {
+      throw new NotFound();
+    }
+    res.json(updateContact);
+  } catch (error) {
+    if (error.message.includes('validation failed')) {
+      error.status = 400;
+    }
+    next(error);
+  }
+});
+
+module.exports = router;
