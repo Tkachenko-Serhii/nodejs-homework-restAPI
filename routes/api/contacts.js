@@ -1,6 +1,8 @@
 const express = require('express');
 const { NotFound } = require('http-errors');
-const { Contact, joiSchema } = require('../../models');
+const { Contact } = require('../../models');
+const { joiSchema } = require('../../models/contact');
+
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
