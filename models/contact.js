@@ -38,7 +38,7 @@ const joiSchema = Joi.object({
       tlds: { allow: ['com', 'net', 'ua', 'ru'] },
     })
     .required(),
-  favorite: Joi.bool,
+  favorite: Joi.boolean(),
 });
 
 const Contact = model('contact', contactSchema);
