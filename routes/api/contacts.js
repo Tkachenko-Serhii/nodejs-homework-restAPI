@@ -52,7 +52,6 @@ router.post('/', authenticate, async (req, res, next) => {
     }
     const { _id } = req.user;
     const newContact = await Contact.create({ ...req.body, owner: _id });
-    console.log(newContact);
     res.status(201).json(newContact);
   } catch (error) {
     if (error.message.includes('validation failed')) {

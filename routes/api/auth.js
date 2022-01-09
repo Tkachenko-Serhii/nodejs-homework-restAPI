@@ -4,7 +4,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../models');
 const { authenticate } = require('../../middlewares');
-const { joiSignupSchema, joiLoginSchema } = require('../../models/user');
+const {
+  joiSignupSchema,
+  joiLoginSchema,
+  joiSubscriptionSchema,
+} = require('../../models/user');
 
 const router = express.Router();
 
@@ -16,14 +20,19 @@ router.post('/signup', async (req, res, next) => {
     if (error) {
       throw new BadRequest(error.message);
     }
-    const { name, email, password } = req.body;
+    const { name, email, password, subscription } = req.body;
     const user = await User.findOne({ email });
     if (user) {
       throw new Conflict('Email in use');
     }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
-    const newUser = await User.create({ name, email, password: hashPassword });
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashPassword,
+      subscription,
+    });
     res.status(201).json({
       user: {
         name: newUser.name,
@@ -72,6 +81,29 @@ router.get('/current', authenticate, async (req, res) => {
   res.json({
     user: { name, email },
   });
+});
+
+router.patch('/', authenticate, async (req, res, next) => {
+  try {
+    const { subscription } = req.body;
+    const { error } = joiSubscriptionSchema.validate(subscription);
+    if (error) {
+      throw new BadRequest(error.message);
+    }
+
+    const { id } = req.user;
+
+    const updateUser = await User.findByIdAndUpdate(
+      id,
+      { subscription },
+      {
+        new: true,
+      },
+    );
+    res.json(updateUser);
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
