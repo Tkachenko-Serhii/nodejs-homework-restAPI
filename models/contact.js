@@ -1,22 +1,33 @@
 const { Schema, model } = require('mongoose');
 const Joi = require('joi');
 
-const contactSchema = Schema({
-  name: {
-    type: String,
-    required: [true, 'Set name for contact'],
+const emailRegexp = /^\w+([\.-]?\w+)+@\w+([\.:]?\w+)+(\.[a-zA-Z0-9]{2,3})+$/;
+
+const contactSchema = Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Set name for contact'],
+    },
+    email: {
+      type: String,
+      match: emailRegexp,
+    },
+    phone: {
+      type: String,
+      required: [true, 'Phone is required'],
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
   },
-  email: {
-    type: String,
-  },
-  phone: {
-    type: String,
-  },
-  favorite: {
-    type: Boolean,
-    default: false,
-  },
-});
+  { versionKey: false, timestamps: true },
+);
 
 const joiSchema = Joi.object({
   name: Joi.string().min(3).max(30).required(),
@@ -27,7 +38,7 @@ const joiSchema = Joi.object({
       tlds: { allow: ['com', 'net', 'ua', 'ru'] },
     })
     .required(),
-  favorite: Joi.bool,
+  favorite: Joi.boolean(),
 });
 
 const Contact = model('contact', contactSchema);
