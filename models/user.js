@@ -37,7 +37,7 @@ const joiSignupSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().pattern(emailRegexp).required(),
   password: Joi.string().min(6).required(),
-  subscription: Joi.string().valueOf('starter', 'pro', 'business'),
+  subscription: Joi.string().valid('starter', 'pro', 'business'),
 });
 
 const joiLoginSchema = Joi.object({
@@ -45,11 +45,9 @@ const joiLoginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
-const joiSubscriptionSchema = Joi.string().valueOf(
-  'starter',
-  'pro',
-  'business',
-);
+const joiSubscriptionSchema = Joi.object({
+  subscription: Joi.string().valid('starter', 'pro', 'business'),
+});
 
 const User = model('user', userSchema);
 

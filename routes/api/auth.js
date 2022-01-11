@@ -85,12 +85,11 @@ router.get('/current', authenticate, async (req, res) => {
 
 router.patch('/', authenticate, async (req, res, next) => {
   try {
-    const { subscription } = req.body;
-    const { error } = joiSubscriptionSchema.validate(subscription);
+    const { error } = joiSubscriptionSchema.validate(req.body);
     if (error) {
       throw new BadRequest(error.message);
     }
-
+    const { subscription } = req.body;
     const { id } = req.user;
 
     const updateUser = await User.findByIdAndUpdate(
