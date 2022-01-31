@@ -5,7 +5,7 @@ const createLetter = async (email, verificationToken) => {
   const data = {
     to: email,
     subject: 'Email confirmation',
-    html: `<p>Follow the <a target="_blank" href="${SITE_NAME}/users/verify/${verificationToken}">link </>to confirm your email.</p>`,
+    html: `<p>Follow the link to confirm your email:</p><a target="_blank" href="${SITE_NAME}users/verify/${verificationToken}">Click here</a>`,
   };
 
   await sendEmail(data);
